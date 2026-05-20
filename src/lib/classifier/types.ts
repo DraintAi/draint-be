@@ -34,14 +34,30 @@ export interface KnownDrainer {
   description: string;
 }
 
+export interface VeniceVerdict {
+  riskScore: number;
+  severity: Severity;
+  reasoning: string;
+  concerns: string[];
+  modelUsed: string;
+  latencyMs: number;
+}
+
 export interface ClassifyResult {
   chainId: number;
   target: Address;
-  riskScore: number; // 0.0 - 1.0
-  severity: Severity;
+  riskScore: number; // 0.0 - 1.0 (final, post-merge)
+  severity: Severity; // final severity
   matchedPattern: string | null;
   reasons: string[];
   features: ContractFeatures;
+  /** Heuristic-only result, before AI merge. */
+  heuristic: {
+    riskScore: number;
+    severity: Severity;
+  };
+  /** Venice AI verdict, if borderline and Venice enabled. Null otherwise. */
+  venice: VeniceVerdict | null;
   classifiedAt: string;
   classifierVersion: string;
 }
