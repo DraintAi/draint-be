@@ -17,10 +17,25 @@ interface ScoreContribution {
 }
 
 /**
- * CrimeEnjoyor signature: tiny bytecode, no selectors, fallback present.
- * Wintermute reversed it — typical size < 200 bytes.
+ * CrimeEnjoyor-family signature: small bytecode, very few public selectors,
+ * fallback present. Wintermute's canonical variant is < 200 bytes but newer
+ * generations (CrimeEnjoyor2, AdvancedCrimeEnjoyor, HardcodedCrimeEnjoyor)
+ * add some logic and immutable-address getters that push runtime size up to
+ * ~400-500 bytes. We use 600 as a lenient ceiling.
+ *
+ * See draint-sc/test/AttackSimulation.t.sol — our mock compiles to 345 bytes
+ * with 2 PUSH4 opcodes (immutable attacker getter), and should still trip
+ * the heuristic.
  */
-const CRIME_ENJOYOR_MAX_SIZE = 200;
+const CRIME_ENJOYOR_MAX_SIZE = 600;
+
+/**
+ * Max public selectors a drainer typically exposes. Canonical CrimeEnjoyor
+ * has 0 (fallback-only). Newer variants with `public immutable attacker`
+ * sneak in 1-2 selectors for the auto-generated getter. > 3 selectors and
+ * the contract is almost certainly a real dApp.
+ */
+const CRIME_ENJOYOR_MAX_SELECTORS = 3;
 
 /**
  * Threshold below which contract is "newly deployed" — suspicious for delegation.
@@ -95,27 +110,30 @@ export function scoreContract(features: ContractFeatures): {
 
   const contributions: ScoreContribution[] = [];
 
-  // Tiny bytecode + fallback + no selectors = CrimeEnjoyor signature
+  // CrimeEnjoyor signature: small bytecode + minimal selectors + fallback
   if (
     features.bytecodeSize > 0 &&
     features.bytecodeSize < CRIME_ENJOYOR_MAX_SIZE &&
-    features.functionSelectors.length === 0 &&
+    features.functionSelectors.length <= CRIME_ENJOYOR_MAX_SELECTORS &&
     features.hasFallback
   ) {
     contributions.push({
       factor: "crime_enjoyor_signature",
       weight: 0.7,
-      reason: `Tiny bytecode (${features.bytecodeSize} bytes), no public functions, only fallback — classic CrimeEnjoyor shape`,
+      reason: `Small bytecode (${features.bytecodeSize} bytes) with ${features.functionSelectors.length} public selector(s) and a fallback — classic CrimeEnjoyor shape`,
     });
   }
 
-  // Fallback-only contract — strong drain risk regardless of size
-  if (features.hasFallback && features.functionSelectors.length === 0) {
+  // Fallback present and few/no other functions — strong drain risk regardless of size
+  if (
+    features.hasFallback &&
+    features.functionSelectors.length <= CRIME_ENJOYOR_MAX_SELECTORS
+  ) {
     contributions.push({
-      factor: "fallback_only",
+      factor: "fallback_heavy",
       weight: 0.25,
       reason:
-        "Contract has only a fallback function and no public methods (atypical for legitimate dApps)",
+        "Contract is fallback-dominant with few public methods (atypical for legitimate dApps)",
     });
   }
 

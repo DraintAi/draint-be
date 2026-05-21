@@ -25,6 +25,18 @@ export const KNOWN_DRAINERS: KnownDrainer[] = [
       "Original copy-paste sweeper. Simple fallback() that forwards incoming assets out same-block. Auto-drains wallet on next deposit.",
   },
   {
+    name: "CrimeEnjoyorMock (drain't test fixture)",
+    family: "CrimeEnjoyor",
+    // Captured from `forge test --match-contract AttackSimulation`
+    // Solc 0.8.28, evm_version=prague, optimizer 200 runs.
+    // See DraintAi/draint-sc/src/CrimeEnjoyorMock.sol
+    bytecodeHash:
+      "0x65daf5c275ec5799e9203ca6b76f44b315a87c786210fc868615fa4d5afd2d6e",
+    source: "DraintAi/draint-sc test fixture",
+    description:
+      "drain't internal CrimeEnjoyor reproduction. Used in Day 7 attack simulation. Tiny bytecode (345 bytes), fallback + receive only, immutable attacker address, auto-forwards all incoming ETH.",
+  },
+  {
     name: "CrimeEnjoyor2",
     family: "CrimeEnjoyor2",
     source: "Wintermute Dune dashboard",
