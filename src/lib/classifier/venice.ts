@@ -13,7 +13,12 @@ import type { ContractFeatures, Severity } from "./types";
 const VENICE_API_KEY = process.env.VENICE_API_KEY;
 const VENICE_API_BASE =
   process.env.VENICE_API_BASE || "https://api.venice.ai/api/v1";
-const VENICE_MODEL = process.env.VENICE_MODEL || "glm-5.1";
+// Default: openai-gpt-oss-120b — Venice's cheapest reasoning model with
+// function calling ($0.07/M tokens, 128k context). drain't requests are
+// ~500 tokens each, so a $1 credit balance funds ~28k classifications.
+// Premium tier (zai-org-glm-5-1) is $1.75/M — only switch if your
+// Venice account has the balance.
+const VENICE_MODEL = process.env.VENICE_MODEL || "openai-gpt-oss-120b";
 
 const client = VENICE_API_KEY
   ? new OpenAI({ apiKey: VENICE_API_KEY, baseURL: VENICE_API_BASE })
