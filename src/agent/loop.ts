@@ -15,6 +15,7 @@
 import { classifyContract } from "../lib/classifier";
 import type { Severity } from "../lib/classifier/types";
 import { probeAddress, type ChangeDetected } from "./monitor";
+import { executeRescue, getPreSignedRevoke } from "./rescue";
 import { stateStore } from "./state";
 import type { Incident } from "./types";
 
@@ -123,14 +124,31 @@ async function analyzeDelegationChange(
     rescue: null,
   };
 
-  // Critical + auto-rescue on → queue rescue. Day 11 wires the actual 1Shot call.
+  // Critical + auto-rescue on → execute rescue immediately.
+  // Redelegation chain: user pre-signed revoke (delegated rescue authority
+  // to drain't), drain't broadcasts it either directly (Sepolia/dev) or
+  // forwards to 1Shot relayer (mainnet, gas paid in stablecoin).
   if (verdict.severity === "critical" && autoRescue) {
-    incident.rescue = {
-      attempted: false,
-      txHash: null,
-      success: false,
-      error: "Rescue execution not yet wired — see Day 11 (1Shot integration)",
-    };
+    const stored = getPreSignedRevoke(change.address, change.chainId);
+    if (!stored) {
+      incident.rescue = {
+        attempted: false,
+        txHash: null,
+        success: false,
+        error: "No pre-signed revoke held. User must pre-sign at onboarding.",
+      };
+    } else {
+      const r = await executeRescue({
+        victim: change.address,
+        chainId: change.chainId,
+      });
+      incident.rescue = {
+        attempted: r.attempted,
+        txHash: r.txHash,
+        success: r.txHash !== null && r.error === null,
+        error: r.error,
+      };
+    }
   }
 
   return incident;

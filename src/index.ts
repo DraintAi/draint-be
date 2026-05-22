@@ -4,6 +4,7 @@ import { logger } from "hono/logger";
 import { agent } from "./routes/agent";
 import { classify } from "./routes/classify";
 import { health } from "./routes/health";
+import { rescue } from "./routes/rescue";
 import { CLASSIFIER_VERSION } from "./lib/classifier";
 import { veniceEnabled } from "./lib/classifier/venice";
 
@@ -32,6 +33,9 @@ app.get("/", (c) =>
       "/api/agent/tick",
       "/api/agent/watch",
       "/api/agent/incidents",
+      "/api/rescue/pre-sign",
+      "/api/rescue/status/:c/:a",
+      "/api/rescue/execute",
     ],
     classifier: {
       version: CLASSIFIER_VERSION,
@@ -43,5 +47,6 @@ app.get("/", (c) =>
 app.route("/api/health", health);
 app.route("/api/classify", classify);
 app.route("/api/agent", agent);
+app.route("/api/rescue", rescue);
 
 export default app;
