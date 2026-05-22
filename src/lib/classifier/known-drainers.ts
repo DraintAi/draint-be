@@ -32,6 +32,10 @@ export const KNOWN_DRAINERS: KnownDrainer[] = [
     // See DraintAi/draint-sc/src/CrimeEnjoyorMock.sol
     bytecodeHash:
       "0x65daf5c275ec5799e9203ca6b76f44b315a87c786210fc868615fa4d5afd2d6e",
+    knownAddresses: [
+      // Live deploy on Sepolia, attacker sink = 0xdEaD. Used by drain't honeypot.
+      "0xae5d26e8bdfe3bfeed4c9a27c2394dbb2f70fd73",
+    ],
     source: "DraintAi/draint-sc test fixture",
     description:
       "drain't internal CrimeEnjoyor reproduction. Used in Day 7 attack simulation. Tiny bytecode (345 bytes), fallback + receive only, immutable attacker address, auto-forwards all incoming ETH.",

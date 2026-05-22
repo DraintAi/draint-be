@@ -10,10 +10,13 @@ import { veniceEnabled } from "./lib/classifier/venice";
 const app = new Hono();
 
 app.use("*", logger());
+// Permissive CORS — drain't backend is a public, read-only-ish classifier.
+// Snap sandbox origins, dev tools, and arbitrary AI agents all need to call
+// /api/classify. We don't accept credentials, so allow-all is safe.
 app.use(
   "*",
   cors({
-    origin: ["http://localhost:3000", "https://draint.vercel.app"],
+    origin: (origin) => origin ?? "*",
     credentials: false,
   }),
 );
