@@ -23,8 +23,8 @@ import {
   createWalletClient,
   http,
   publicActions,
+  type Chain,
   type Hex,
-  type SignAuthorizationReturnType,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { mainnet, sepolia } from "viem/chains";
@@ -36,9 +36,21 @@ const RPC_URLS: Record<number, string> = {
     "https://ethereum-sepolia-rpc.publicnode.com",
 };
 
-const CHAINS: Record<number, typeof mainnet> = {
+const CHAINS: Record<number, Chain> = {
   1: mainnet,
   11155111: sepolia,
+};
+
+// viem 2.50.4 SignAuthorizationReturnType shape:
+//   { address, chainId, nonce, r, s, v: bigint, yParity?: undefined }
+// Note: 'address' (not 'contractAddress') and v: bigint (not yParity).
+type ViemAuthorization = {
+  address: `0x${string}`;
+  chainId: number;
+  nonce: number;
+  r: `0x${string}`;
+  s: `0x${string}`;
+  v: bigint;
 };
 
 const ONESHOT_BASE =
@@ -127,15 +139,16 @@ export async function executeRescue(req: RescueRequest): Promise<RescueResult> {
   const mode: RescueMode =
     req.mode ?? (req.chainId === 1 ? "oneshot" : "direct");
 
-  // Reconstruct the viem-compatible authorization object from storage
-  const auth = {
+  // Reconstruct the viem-compatible authorization object from storage.
+  // Viem's runtime shape uses `address` and `v: bigint` (not contractAddress/yParity).
+  const auth: ViemAuthorization = {
+    address: stored.authorization.contractAddress,
     chainId: stored.authorization.chainId,
-    contractAddress: stored.authorization.contractAddress,
-    nonce: Number(stored.authorization.nonce), // viem accepts number for 7702 nonce
-    yParity: stored.authorization.yParity,
+    nonce: Number(stored.authorization.nonce),
+    v: BigInt(27 + stored.authorization.yParity),
     r: stored.authorization.r,
     s: stored.authorization.s,
-  } as unknown as SignAuthorizationReturnType;
+  };
 
   if (mode === "direct") {
     return executeDirect(req.victim, req.chainId, auth);
@@ -146,7 +159,7 @@ export async function executeRescue(req: RescueRequest): Promise<RescueResult> {
 async function executeDirect(
   victim: `0x${string}`,
   chainId: number,
-  auth: SignAuthorizationReturnType,
+  auth: ViemAuthorization,
 ): Promise<RescueResult> {
   if (!agentAccount) {
     return {
@@ -175,7 +188,12 @@ async function executeDirect(
   }).extend(publicActions);
 
   try {
-    const txHash = await client.sendTransaction({
+    // viem's sendTransaction signature is over-strict on `kzg` for tx
+    // params (EIP-4844 blob field). 7702 SET_CODE doesn't use blobs, but
+    // TypeScript demands the property. Cast through unknown to bypass.
+    const txHash = await (client.sendTransaction as unknown as (
+      params: Record<string, unknown>,
+    ) => Promise<`0x${string}`>)({
       authorizationList: [auth],
       to: victim,
       data: "0x",
@@ -195,7 +213,7 @@ async function executeDirect(
 async function executeOneShot(
   victim: `0x${string}`,
   chainId: number,
-  auth: SignAuthorizationReturnType,
+  auth: ViemAuthorization,
 ): Promise<RescueResult> {
   if (!oneShotReady) {
     return {
@@ -239,9 +257,9 @@ async function executeOneShot(
             authorizationList: [
               {
                 chainId: auth.chainId,
-                address: auth.contractAddress,
-                nonce: stored_authToNonce(auth),
-                yParity: auth.yParity,
+                address: auth.address,
+                nonce: String(auth.nonce),
+                v: String(auth.v),
                 r: auth.r,
                 s: auth.s,
               },
@@ -294,6 +312,3 @@ async function executeOneShot(
   }
 }
 
-function stored_authToNonce(auth: SignAuthorizationReturnType): string {
-  return String((auth as unknown as { nonce: bigint | number }).nonce);
-}

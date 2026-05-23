@@ -1,6 +1,12 @@
 // Bytecode fetching via viem.
 
-import { createPublicClient, http, keccak256, type PublicClient } from "viem";
+import {
+  createPublicClient,
+  http,
+  keccak256,
+  type Chain,
+  type PublicClient,
+} from "viem";
 import { mainnet, sepolia } from "viem/chains";
 import type { Address, Hex } from "./types";
 
@@ -13,7 +19,7 @@ const RPC_URLS: Record<number, string> = {
     "https://ethereum-sepolia-rpc.publicnode.com",
 };
 
-const CHAIN_MAP: Record<number, typeof mainnet> = {
+const CHAIN_MAP: Record<number, Chain> = {
   1: mainnet,
   11155111: sepolia,
 };

