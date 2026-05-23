@@ -1,12 +1,11 @@
-// Diagnostic: minimal Vercel Function. No imports beyond Web API.
-// If THIS times out too, the issue is Vercel infra / env vars / bundling,
-// not our app code.
+// Diagnostic: minimal Vercel Function. Uses named GET export per Vercel's
+// expected Web Fetch API pattern.
 
 export const config = {
   runtime: "nodejs",
 };
 
-export default async function handler(_req: Request): Promise<Response> {
+export function GET(_req: Request): Response {
   return new Response(
     JSON.stringify({ ping: "pong", at: new Date().toISOString() }),
     { headers: { "content-type": "application/json" } },
