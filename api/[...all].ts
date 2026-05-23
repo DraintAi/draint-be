@@ -1,20 +1,17 @@
-// Vercel Functions catch-all entry. All requests to /api/* on the deployed
-// drain't backend route through this single function, which delegates to
-// our Hono app for internal routing.
+// Vercel Functions catch-all entry. Delegates to our Hono app via the
+// Web Fetch API standard.
 //
-// For pure Vercel Functions (no Next.js), the expected handler shape is
-// `export default <(req: Request) => Response>`. Named HTTP-method exports
-// (GET/POST/PUT/etc.) are Next.js App Router conventions and DO NOT work
-// in raw Vercel Functions — they cause FUNCTION_INVOCATION_FAILED.
-//
-// Local dev still uses `bun run dev` → src/index.ts directly.
+// Edge runtime: Hono's app.fetch is a pure Request → Response handler
+// (Web Standard) and runs in Vercel's Edge environment without
+// adaptation. Node runtime requires extra wrapping. Edge also gives
+// faster cold-start which is nice for the cron + classify hot paths.
 
 import app from "../src/index";
 
 export const config = {
-  runtime: "nodejs",
+  runtime: "edge",
 };
 
 export default async function handler(req: Request): Promise<Response> {
-  return app.fetch(req);
+  return await app.fetch(req);
 }
