@@ -1,12 +1,6 @@
 // Bytecode fetching via viem.
 
-import {
-  createPublicClient,
-  http,
-  keccak256,
-  type Chain,
-  type PublicClient,
-} from "viem";
+import { createPublicClient, http, keccak256, type Chain } from "viem";
 import { mainnet, sepolia } from "viem/chains";
 import type { Address, Hex } from "./types";
 
@@ -24,19 +18,26 @@ const CHAIN_MAP: Record<number, Chain> = {
   11155111: sepolia,
 };
 
-const clientCache = new Map<number, PublicClient>();
+// viem 2.50.4's PublicClient generic is over-constrained — the no-arg form
+// expects account=undefined but createPublicClient() returns a richer type.
+// We don't need a precise type for the cache; rely on inference at the
+// boundary and let internal map storage be opaque.
+type ClientType = ReturnType<typeof newClient>;
+const clientCache = new Map<number, ClientType>();
 
-function getClient(chainId: number): PublicClient {
-  const cached = clientCache.get(chainId);
-  if (cached) return cached;
-
+function newClient(chainId: number) {
   const chain = CHAIN_MAP[chainId];
   const rpcUrl = RPC_URLS[chainId];
   if (!chain || !rpcUrl) {
     throw new Error(`Unsupported chainId ${chainId}`);
   }
+  return createPublicClient({ chain, transport: http(rpcUrl) });
+}
 
-  const client = createPublicClient({ chain, transport: http(rpcUrl) });
+function getClient(chainId: number): ClientType {
+  const cached = clientCache.get(chainId);
+  if (cached) return cached;
+  const client = newClient(chainId);
   clientCache.set(chainId, client);
   return client;
 }
