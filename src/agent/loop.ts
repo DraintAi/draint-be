@@ -12,12 +12,12 @@
 // This is the AI agent's heartbeat. Brain (Venice AI) lives inside
 // `classifyContract` — the agent itself just orchestrates skills.
 
-import { classifyContract } from "../lib/classifier";
-import type { Severity } from "../lib/classifier/types";
-import { probeAddress, type ChangeDetected } from "./monitor";
-import { executeRescue, getPreSignedRevoke } from "./rescue";
-import { stateStore } from "./state";
-import type { Incident } from "./types";
+import { classifyContract } from "../lib/classifier/index.js";
+import type { Severity } from "../lib/classifier/types.js";
+import { probeAddress, type ChangeDetected } from "./monitor.js";
+import { executeRescue, getPreSignedRevoke } from "./rescue.js";
+import { stateStore } from "./state.js";
+import type { Incident } from "./types.js";
 
 export interface TickResult {
   startedAt: string;

@@ -2,7 +2,7 @@
 
 import { createPublicClient, http, keccak256, type Chain } from "viem";
 import { mainnet, sepolia } from "viem/chains";
-import type { Address, Hex } from "./types";
+import type { Address, Hex } from "./types.js";
 
 const RPC_URLS: Record<number, string> = {
   1:

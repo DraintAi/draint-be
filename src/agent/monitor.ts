@@ -11,8 +11,8 @@
 // tick) and fits inside Vercel Cron's 60s minimum interval.
 
 import { keccak256 } from "viem";
-import { fetchBytecode } from "../lib/classifier/bytecode";
-import type { Address } from "../lib/classifier/types";
+import { fetchBytecode } from "../lib/classifier/bytecode.js";
+import type { Address } from "../lib/classifier/types.js";
 
 export interface ChangeDetected {
   kind: "first-seen" | "bytecode-changed" | "delegation-changed";

@@ -5,7 +5,7 @@
 // Production wiring: swap with Upstash Redis (Vercel Marketplace) — same
 // interface, just persistent.
 
-import type { AgentState, Incident, WatchedAddress } from "./types";
+import type { AgentState, Incident, WatchedAddress } from "./types.js";
 
 const MAX_INCIDENTS = 100;
 

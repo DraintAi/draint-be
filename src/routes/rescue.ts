@@ -18,7 +18,7 @@ import {
   storePreSignedRevoke,
   type RescueMode,
   type StoredRevoke,
-} from "../agent/rescue";
+} from "../agent/rescue.js";
 
 export const rescue = new Hono();
 

@@ -10,8 +10,8 @@
 
 import { Hono, type Context } from "hono";
 import { z } from "zod";
-import { runOneTick } from "../agent/loop";
-import { stateStore } from "../agent/state";
+import { runOneTick } from "../agent/loop.js";
+import { stateStore } from "../agent/state.js";
 
 export const agent = new Hono();
 

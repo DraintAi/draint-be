@@ -5,7 +5,7 @@
 // EIP-7702 delegation changes and reacts when a malicious delegation is
 // detected.
 
-import type { Address, Severity } from "../lib/classifier/types";
+import type { Address, Severity } from "../lib/classifier/types.js";
 
 export interface WatchedAddress {
   address: Address;

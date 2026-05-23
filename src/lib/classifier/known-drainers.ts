@@ -9,7 +9,7 @@
 // The classifier is designed to work with empty dataset (heuristic fallback)
 // and improve as the dataset grows.
 
-import type { KnownDrainer } from "./types";
+import type { KnownDrainer } from "./types.js";
 
 export const KNOWN_DRAINERS: KnownDrainer[] = [
   {

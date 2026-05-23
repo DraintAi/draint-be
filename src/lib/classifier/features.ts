@@ -2,7 +2,7 @@
 //
 // EVM opcode reference: https://www.evm.codes/
 
-import type { Hex } from "./types";
+import type { Hex } from "./types.js";
 
 /**
  * Extract 4-byte function selectors from compiled bytecode.

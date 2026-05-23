@@ -2,21 +2,21 @@
 // Combines bytecode fetch → feature extraction → Etherscan lookup → heuristic
 // scoring → Venice AI semantic refinement (borderline cases only).
 
-import { fetchBytecode, fetchContractAge } from "./bytecode";
-import { fetchSourceMeta } from "./etherscan";
+import { fetchBytecode, fetchContractAge } from "./bytecode.js";
+import { fetchSourceMeta } from "./etherscan.js";
 import {
   extractFunctionSelectors,
   hasFallback,
   hasReceive,
-} from "./features";
-import { scoreContract } from "./heuristic";
+} from "./features.js";
+import { scoreContract } from "./heuristic.js";
 import type {
   Address,
   ClassifyResult,
   ContractFeatures,
   Severity,
-} from "./types";
-import { veniceClassify, veniceEnabled } from "./venice";
+} from "./types.js";
+import { veniceClassify, veniceEnabled } from "./venice.js";
 
 export const CLASSIFIER_VERSION = "0.2.0-heuristic+venice";
 

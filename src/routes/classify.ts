@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { classifyContract } from "../lib/classifier";
+import { classifyContract } from "../lib/classifier/index.js";
 
 export const classify = new Hono();
 

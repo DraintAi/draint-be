@@ -1,12 +1,12 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import { agent } from "./routes/agent";
-import { classify } from "./routes/classify";
-import { health } from "./routes/health";
-import { rescue } from "./routes/rescue";
-import { CLASSIFIER_VERSION } from "./lib/classifier";
-import { veniceEnabled } from "./lib/classifier/venice";
+import { agent } from "./routes/agent.js";
+import { classify } from "./routes/classify.js";
+import { health } from "./routes/health.js";
+import { rescue } from "./routes/rescue.js";
+import { CLASSIFIER_VERSION } from "./lib/classifier/index.js";
+import { veniceEnabled } from "./lib/classifier/venice.js";
 
 const app = new Hono();
 

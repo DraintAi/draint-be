@@ -7,8 +7,8 @@
 // Real-world tuning happens Day 7 attack simulation; numbers here are
 // reasoned defaults from CrimeEnjoyor characteristics.
 
-import type { ClassifyResult, ContractFeatures, Severity } from "./types";
-import { findByAddress, findByHash } from "./known-drainers";
+import type { ClassifyResult, ContractFeatures, Severity } from "./types.js";
+import { findByAddress, findByHash } from "./known-drainers.js";
 
 interface ScoreContribution {
   factor: string;

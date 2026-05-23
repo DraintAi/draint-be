@@ -8,7 +8,7 @@
 // only the target contract address + extracted features. Per drain't ethos.
 
 import OpenAI from "openai";
-import type { ContractFeatures, Severity } from "./types";
+import type { ContractFeatures, Severity } from "./types.js";
 
 const VENICE_API_KEY = process.env.VENICE_API_KEY;
 const VENICE_API_BASE =
