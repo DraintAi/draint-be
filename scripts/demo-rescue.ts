@@ -176,7 +176,7 @@ const preSignBody = {
     chainId: revokeAuth.chainId,
     contractAddress: ZERO,
     nonce: String(revokeAuth.nonce),
-    yParity: Number(revokeAuth.v % 2n),
+    yParity: Number((revokeAuth.v ?? 0n) % 2n),
     r: revokeAuth.r,
     s: revokeAuth.s,
   },
