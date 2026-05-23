@@ -1,5 +1,6 @@
 {
   "name": "draint-be",
+  "type": "module",
   "scripts": {
     "dev": "bun run --hot src/index.ts",
     "build": "bunx tsc --noEmit -p tsconfig.json",
