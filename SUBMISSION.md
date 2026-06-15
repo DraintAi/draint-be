@@ -34,12 +34,6 @@ Not used.
 - Venice client + classification prompt: [src/lib/classifier/venice.ts](https://github.com/DraintAi/draint-be/blob/main/src/lib/classifier/venice.ts)
 - Classifier orchestration (heuristic → Venice escalation on borderline): [src/lib/classifier/index.ts](https://github.com/DraintAi/draint-be/blob/main/src/lib/classifier/index.ts)
 
-## Feedback
-<!-- If applying for the Feedback track: link your submitted feedback / opened issues here. -->
-
-## Social Media
-<!-- If applying for Best Social Media: link your X post tagging @MetaMaskDev (showcasing the drain't journey), and confirm criteria met. -->
-
 ---
 
 _Also applying for **Best Agent** — autonomous monitor→classify→rescue loop: [loop.ts](https://github.com/DraintAi/draint-be/blob/main/src/agent/loop.ts) · [monitor.ts](https://github.com/DraintAi/draint-be/blob/main/src/agent/monitor.ts) · [routes/agent.ts](https://github.com/DraintAi/draint-be/blob/main/src/routes/agent.ts)_
