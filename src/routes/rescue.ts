@@ -19,6 +19,8 @@ import {
   type RescueMode,
   type StoredRevoke,
 } from "../agent/rescue.js";
+import { oneShotGaslessRescue, oneShotStatus } from "../agent/oneshot7710.js";
+import type { Hex, Address } from "viem";
 
 export const rescue = new Hono();
 
@@ -95,6 +97,78 @@ rescue.get("/list", (c) =>
     })),
   }),
 );
+
+// One-click gasless rescue for the demo wallet (drives the same EIP-7710 / 1Shot
+// flow as scripts/oneshot-rescue.ts). Sweeps the demo wallet's USDC to the
+// configured recovery address; gas paid in USDC, zero ETH. The agent normally
+// fires this autonomously on a critical detection — this is the manual trigger
+// surfaced in the FE so the rescue is visible end-to-end.
+//
+// Guard: if DRAINT_DEMO_RESCUE_KEY is set, callers must send it as
+// `x-draint-key`. Low-stakes (funds only ever move to the owner's recovery
+// wallet), but it stops casual abuse.
+rescue.post("/oneshot", async (c) => {
+  const guard = process.env.DRAINT_DEMO_RESCUE_KEY;
+  if (guard && c.req.header("x-draint-key") !== guard) {
+    return c.json({ error: "unauthorized" }, 401);
+  }
+
+  const pk = process.env.DRAINT_DEMO_PRIVATE_KEY as Hex | undefined;
+  const recovery = process.env.DRAINT_RECOVERY_ADDRESS as Address | undefined;
+  if (!pk || !recovery) {
+    return c.json(
+      { error: "DRAINT_DEMO_PRIVATE_KEY + DRAINT_RECOVERY_ADDRESS must be set" },
+      500,
+    );
+  }
+  const chainId = Number(process.env.ONESHOT_CHAIN_ID ?? 42161);
+  // ?dryRun=1 validates the full bundle (estimate) without broadcasting/spending.
+  const dryRun = c.req.query("dryRun") === "1";
+
+  try {
+    const r = await oneShotGaslessRescue({
+      chainId,
+      victimPrivateKey: pk,
+      recoveryAddress: recovery,
+      send: !dryRun,
+    });
+
+    // Poll to confirmation (Arbitrum confirms in a few seconds).
+    let status: number | null = null;
+    let txHash: string | null = r.taskId;
+    if (r.taskId) {
+      for (let i = 0; i < 12; i++) {
+        await new Promise((res) => setTimeout(res, 2000));
+        const st = (await oneShotStatus(r.taskId)) as {
+          status?: number;
+          receipt?: { transactionHash?: string };
+          hash?: string;
+        };
+        status = st.status ?? null;
+        txHash = st.receipt?.transactionHash ?? st.hash ?? txHash;
+        if (status && status >= 200) break;
+      }
+    }
+
+    return c.json({
+      ok: true,
+      dryRun,
+      chainId,
+      victim: r.victim,
+      recovery,
+      token: r.token,
+      sweepAmount: r.sweepAmount,
+      requiredPaymentAmount: r.requiredPaymentAmount,
+      taskId: r.taskId,
+      txHash,
+      status,
+      explorer: txHash ? `https://arbiscan.io/tx/${txHash}` : null,
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ ok: false, error: msg }, 502);
+  }
+});
 
 rescue.post("/execute", async (c) => {
   const body = (await c.req.json().catch(() => ({}))) as {
