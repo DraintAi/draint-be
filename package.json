@@ -7,6 +7,7 @@
     "typecheck": "bunx tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@metamask/smart-accounts-kit": "^1.6.0",
     "hono": "^4.12.21",
     "openai": "^6.38.0",
     "viem": "^2.50.4",

@@ -110,7 +110,10 @@ export async function veniceClassify(
         },
       ],
       temperature: 0.1,
-      max_tokens: 600,
+      // Headroom for reasoning models (e.g. GLM 5.1): chain-of-thought tokens
+      // count toward the completion budget, so 600 can leave no room for the
+      // JSON body. 1024 keeps the final object intact.
+      max_tokens: 1024,
       response_format: { type: "json_object" },
     });
 
@@ -121,7 +124,7 @@ export async function veniceClassify(
     if (!parsed) return null;
 
     return {
-      riskScore: clamp(Number(parsed.riskScore), 0, 1),
+      riskScore: normalizeRiskScore(parsed.riskScore),
       severity: normalizeSeverity(parsed.severity),
       reasoning: String(parsed.reasoning ?? "").slice(0, 1000),
       concerns: Array.isArray(parsed.concerns)
@@ -161,4 +164,17 @@ function normalizeSeverity(s: unknown): Severity {
 function clamp(n: number, lo: number, hi: number): number {
   if (Number.isNaN(n)) return lo;
   return Math.max(lo, Math.min(hi, n));
+}
+
+/**
+ * Normalize a model-returned risk score to 0.0–1.0.
+ * Reasoning models (e.g. GLM 5.1) often ignore the "0.0-1.0" instruction and
+ * return a 0–100 integer (e.g. 95). Treat anything >1 as a percentage so a
+ * borderline "45" doesn't get clamped straight to 1.0 (false critical).
+ */
+function normalizeRiskScore(raw: unknown): number {
+  let n = Number(raw);
+  if (Number.isNaN(n)) return 0;
+  if (n > 1) n = n / 100;
+  return clamp(n, 0, 1);
 }

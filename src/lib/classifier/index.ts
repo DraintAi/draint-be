@@ -20,10 +20,16 @@ import { veniceClassify, veniceEnabled } from "./venice.js";
 
 export const CLASSIFIER_VERSION = "0.2.0-heuristic+venice";
 
+/**
+ * Venice is only invoked on "borderline" cases to save latency + cost.
+ * Thresholds are env-overridable so a demo can widen the band (e.g. set
+ * CLASSIFIER_BORDERLINE_HIGH=1.0 to force Venice reasoning on confirmed
+ * drainers too) without touching production defaults.
+ */
 /** Below this, no Venice call — already deemed safe. */
-const BORDERLINE_LOW = 0.3;
-/** Above this, no Venice call — already deemed critical. */
-const BORDERLINE_HIGH = 0.7;
+const BORDERLINE_LOW = Number(process.env.CLASSIFIER_BORDERLINE_LOW ?? 0.3);
+/** At/above this, no Venice call — already deemed critical. */
+const BORDERLINE_HIGH = Number(process.env.CLASSIFIER_BORDERLINE_HIGH ?? 0.7);
 
 export interface ClassifyInput {
   chainId: number;

@@ -27,10 +27,12 @@ import {
   type Hex,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { mainnet, sepolia } from "viem/chains";
+import { arbitrum, mainnet, sepolia } from "viem/chains";
 
 const RPC_URLS: Record<number, string> = {
   1: process.env.ETHEREUM_MAINNET_RPC_URL || "https://ethereum-rpc.publicnode.com",
+  42161:
+    process.env.ARBITRUM_RPC_URL || "https://arbitrum-one-rpc.publicnode.com",
   11155111:
     process.env.ETHEREUM_SEPOLIA_RPC_URL ||
     "https://ethereum-sepolia-rpc.publicnode.com",
@@ -38,8 +40,26 @@ const RPC_URLS: Record<number, string> = {
 
 const CHAINS: Record<number, Chain> = {
   1: mainnet,
+  42161: arbitrum,
   11155111: sepolia,
 };
+
+// Chains where the 1Shot Permissionless Relayer is available (gas paid in
+// USDC, no ETH needed). Source: relayer_getCapabilities / 1Shot docs.
+// Anything NOT in this set falls back to 'direct' (requires a funded agent EOA).
+const ONESHOT_CHAINS = new Set<number>([
+  1, // Ethereum
+  42161, // Arbitrum One
+  10, // Optimism
+  8453, // Base
+  137, // Polygon
+  56, // BSC
+  59144, // Linea
+  42220, // Celo
+  130, // Unichain
+  146, // Sonic
+  143, // Monad
+]);
 
 // viem 2.50.4 SignAuthorizationReturnType shape:
 //   { address, chainId, nonce, r, s, v: bigint, yParity?: undefined }
@@ -137,7 +157,7 @@ export async function executeRescue(req: RescueRequest): Promise<RescueResult> {
   }
 
   const mode: RescueMode =
-    req.mode ?? (req.chainId === 1 ? "oneshot" : "direct");
+    req.mode ?? (ONESHOT_CHAINS.has(req.chainId) ? "oneshot" : "direct");
 
   // Reconstruct the viem-compatible authorization object from storage.
   // Viem's runtime shape uses `address` and `v: bigint` (not contractAddress/yParity).
@@ -223,12 +243,12 @@ async function executeOneShot(
       error: "ONESHOT_API_KEY not configured. Set it in .env and restart backend.",
     };
   }
-  if (chainId !== 1) {
+  if (!ONESHOT_CHAINS.has(chainId)) {
     return {
       attempted: false,
       txHash: null,
       mode: "oneshot",
-      error: "1Shot Permissionless Relayer is mainnet-only per hackathon requirements.",
+      error: `1Shot Permissionless Relayer does not support chainId ${chainId}. Supported: ${[...ONESHOT_CHAINS].join(", ")}.`,
     };
   }
 
