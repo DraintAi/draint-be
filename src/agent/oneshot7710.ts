@@ -23,12 +23,14 @@ import {
   createDelegation,
   toMetaMaskSmartAccount,
 } from "@metamask/smart-accounts-kit";
+import { randomBytes } from "node:crypto";
 import {
   createPublicClient,
   encodeFunctionData,
   erc20Abi,
   http,
   parseUnits,
+  toHex,
   type Address,
   type Chain,
   type Hex,
@@ -202,11 +204,20 @@ export async function oneShotGaslessRescue(
     to: targetAddress,
     from: account.address,
     environment: account.environment,
+    // Fresh random salt per rescue → unique delegation hash. Without this the
+    // ERC20TransferAmountEnforcer treats the allowance as cumulative across runs
+    // (same hash) and rejects with allowance-exceeded on the 2nd redemption.
+    salt: toHex(randomBytes(32)),
     scope: {
       type: ScopeType.Erc20TransferAmount,
       tokenAddress: token,
       maxAmount,
     },
+    // ROADMAP (trustless hardening): add an `erc20BalanceChange` caveat
+    // (recipient=recovery, increase>=sweepAmount) so even a malicious relayer
+    // can't redirect the sweep. Enforcer wires up correctly, but reconciling it
+    // with the relayer's fee/execution accounting needs more iteration — the
+    // current scope (amount cap) ships proven; recipient-lock is next.
   });
   const signature = await account.signDelegation({ delegation });
   const signedDelegation = { ...delegation, signature };
