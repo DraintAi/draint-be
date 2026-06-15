@@ -114,7 +114,9 @@ export async function veniceClassify(
       // count toward the completion budget, so 600 can leave no room for the
       // JSON body. 1024 keeps the final object intact.
       max_tokens: 1024,
-      response_format: { type: "json_object" },
+      // NOTE: do NOT send response_format:json_object — several Venice models
+      // (e.g. openai-gpt-oss-120b) reject it with HTTP 400. We instruct JSON in
+      // the prompt and parse leniently (parseVeniceResponse strips fences).
     });
 
     const content = response.choices[0]?.message?.content;
